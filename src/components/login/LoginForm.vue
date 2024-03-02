@@ -1,0 +1,127 @@
+<template>
+  <div>
+    <b-card
+      class="login-card mb-2"
+      :img-src="require('../../assets/logo.svg')"
+      img-alt="Image"
+      img-top
+      tag="article"
+      style="max-width: 20rem"
+    >
+      <b-form @submit="onSubmit" v-if="show">
+        <b-form-group id="input-group-1" label-for="input-1">
+          <b-form-input
+            id="input-1"
+            v-model="form.email"
+            type="email"
+            placeholder="Enter email"
+            required
+          ></b-form-input>
+        </b-form-group>
+
+        <b-form-group id="input-group-2" label-for="input-2" class="mt-3">
+          <b-form-input
+            id="input-2"
+            v-model="form.password"
+            placeholder="Enter password"
+            required
+            type="password"
+          ></b-form-input>
+        </b-form-group>
+
+        <b-button
+          type="submit"
+          :disabled="isLoading"
+          class="mt-3 w-100"
+          variant="outline-primary"
+        >
+          <b-spinner small v-if="isLoading"></b-spinner>
+          {{ isLoading ? "Logging in..." : "Login" }}</b-button
+        >
+      </b-form>
+    </b-card>
+  </div>
+</template>
+  
+  <script>
+import { Api } from "../../helpers/Api/apiConfig.js";
+//  import { encryptData} from '@/helpers/Crypto/crypto.js';
+export default {
+  data() {
+    return {
+      isLoading: false,
+      form: {
+        email: "homework@eva.guru",
+        password: "Homeworkeva1**",
+      },
+
+      show: true,
+    };
+  },
+  methods: {
+    onSubmit(event) {
+      event.preventDefault();
+      // alert(JSON.stringify(this.form))
+      this.Login();
+    },
+    async Login() {
+      this.isLoading = true;
+
+      await Api("POST", "/oauth/token", {
+        Email: this.form.email,
+        Password: this.form.password,
+        GrantType: "password",
+        Scope: "amazon_data",
+        ClientId: "C0001",
+        ClientSecret: "SECRET0001",
+        RedirectUri: "https://api.eva.guru",
+      })
+        .then((response) => {
+          console.log(response.data);
+          if (response.data.ApiStatusCode == "200") {
+            // const encryptedAccessToken = encryptData('oğuz');//response.data.Data.AccessToken
+            // const encryptedRefreshToken = encryptData('test');//response.data.Data.RefreshToken
+
+            localStorage.setItem("AccessToken", response.data.Data.AccessToken);
+            localStorage.setItem(
+              "RefreshToken",
+              response.data.Data.RefreshToken
+            );
+            this.$store.dispatch("User/login", { email: this.form.email });
+          } else {
+            console.log(
+              response.data.ApiStatusMessage === ""
+                ? "Error! Please Check Your Information Again"
+                : response.data.ApiStatusMessage
+            );
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      this.isLoading = localStorage.getItem("userData") ? false : "";
+    },
+  },
+};
+</script>
+  <style scoped>
+.card-img,
+.card-img-top,
+.card-img-bottom {
+  width: 25%;
+  margin: auto;
+  padding-top: 10px;
+}
+.login-card {
+  background-color: #13003b;
+  display: flex;
+  justify-content: center;
+
+  height: 276px;
+  padding: 10px;
+  border-radius: 30px;
+  margin: auto;
+  max-width: 26rem !important;
+  margin-top: 10%;
+}
+</style>
