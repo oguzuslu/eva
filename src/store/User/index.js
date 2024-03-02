@@ -33,7 +33,7 @@ export default {
     },
     actions: {
         async login({ commit }, data) {
-            console.log('data', data);
+            console.log('data ', data);
             try {
                 const response = await Api('POST', '/user/user-information', { "email": data.email });
                 commit('setUserData', response.data.Data.user);
